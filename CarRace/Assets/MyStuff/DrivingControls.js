@@ -1,7 +1,7 @@
 ﻿#pragma strict
 
-var forwardSpeed : float = 300;
-var turnSpeed : float = 2;
+var forwardSpeed : float = 30000;
+var turnSpeed : float = 2.5;
 
 function Start () {
 
@@ -13,6 +13,6 @@ function Update () {
 	var turnAmount = Input.GetAxis("Horizontal") * turnSpeed;
 	
 	transform.Rotate(0,turnAmount,0);
-	rigidbody.AddRelativeForce(forwardAmount,0,0);
+	rigidbody.AddRelativeForce(0,0,forwardAmount);
 	
 }

@@ -1,76 +1,31 @@
 fileFormatVersion: 2
-guid: dbd716eaef84b4f41a70c3fbcfb0c069
+guid: 832927771d0c7443486750177b660cd9
 ModelImporter:
   serializedVersion: 16
   fileIDToRecycleName:
     100000: //RootNode
-    100002: CarBody
-    100004: Hood
-    100006: HubBL
-    100008: HubBR
-    100010: HubFL
-    100012: HubFR
-    100014: Sphere
-    100016: Spoiler
-    100018: WheelBL
-    100020: WheelBR
-    100022: WheelFL
-    100024: WheelFR
+    100002: Cube_000
+    100004: Cube_001
+    100006: Cube_002
     400000: //RootNode
-    400002: CarBody
-    400004: Hood
-    400006: HubBL
-    400008: HubBR
-    400010: HubFL
-    400012: HubFR
-    400014: Sphere
-    400016: Spoiler
-    400018: WheelBL
-    400020: WheelBR
-    400022: WheelFL
-    400024: WheelFR
-    2300000: CarBody
-    2300002: Hood
-    2300004: HubBL
-    2300006: HubBR
-    2300008: HubFL
-    2300010: HubFR
-    2300012: Sphere
-    2300014: Spoiler
-    2300016: WheelBL
-    2300018: WheelBR
-    2300020: WheelFL
-    2300022: WheelFR
-    2300024: //RootNode
-    3300000: CarBody
-    3300002: Hood
-    3300004: HubBL
-    3300006: HubBR
-    3300008: HubFL
-    3300010: HubFR
-    3300012: Sphere
-    3300014: Spoiler
-    3300016: WheelBL
-    3300018: WheelBR
-    3300020: WheelFL
-    3300022: WheelFR
-    3300024: //RootNode
-    4300000: Sphere
-    4300002: Spoiler
-    4300004: Hood
-    4300006: CarBody
-    4300008: WheelBR
-    4300010: HubBR
-    4300012: WheelBL
-    4300014: HubBL
-    4300016: WheelFL
-    4300018: HubFL
-    4300020: WheelFR
-    4300022: HubFR
+    400002: Cube_000
+    400004: Cube_001
+    400006: Cube_002
+    2300000: //RootNode
+    2300002: Cube_000
+    2300004: Cube_001
+    2300006: Cube_002
+    3300000: //RootNode
+    3300002: Cube_000
+    3300004: Cube_001
+    3300006: Cube_002
+    4300000: Cube_001
+    4300002: Cube_002
+    4300004: Cube_000
     7400000: Default Take
     9500000: //RootNode
   materials:
-    importMaterials: 1
+    importMaterials: 0
     materialName: 0
     materialSearch: 1
   animations:
