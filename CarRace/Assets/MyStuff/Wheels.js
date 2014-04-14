@@ -11,6 +11,7 @@ function Start () {
 
 function Update () {
 
+
 	var turnDir = Input.GetAxis("Horizontal");
 	
 	if(!turned && turnDir > 0){
@@ -34,6 +35,7 @@ function Update () {
 		}
 		turned = false;
 	}	
+
 }
 
 
