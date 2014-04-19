@@ -15,14 +15,14 @@ function Start () {
 function OnTriggerEnter(other : Collider){
 	//begin race
 	if(!theRaceIsOn){
-		if(other.transform.name.Equals("Car")){
+		if(other.transform.tag.Equals("Player")){
 			startTime = Time.time;
 			theRaceIsOn = true;
 		}
 	}
 	//end race 
 	else{
-		if(other.transform.name.Equals("Car")){
+		if(other.transform.tag.Equals("Player")){
 			//end race
 			theRaceIsOn = false;
 			other.gameObject.GetComponent(DrivingControls).enabled = false;
