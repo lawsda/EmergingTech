@@ -10,6 +10,7 @@ function OnServerInitialized(){
 
 function OnPlayerConnected(player : NetworkPlayer){
 	SpawnPlayer(player);
+	
 }
 
 function SpawnPlayer(player : NetworkPlayer){

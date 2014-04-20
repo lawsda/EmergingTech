@@ -16,7 +16,8 @@ function Awake(){
 		enabled = false;
 }
 
-function Update () {
+function Update () 
+{
 	if(theOwner != null && Network.player == theOwner)
 	{
 		var VInput = Input.GetAxis("Vertical");
@@ -41,31 +42,6 @@ function Update () {
 		//keyboard input controls
 		var forwardAmount = serverCurrentVInput * forwardSpeed;
 		var turnAmount = serverCurrentHInput * turnSpeed;
-	
-		//accelerometer controls
-		//overrides keyboard input
-		if(Input.acceleration.y > 0)
-			forwardAmount = Mathf.Ceil(Input.acceleration.y) * forwardSpeed;
-		else if(Input.acceleration.y < 0)
-			forwardAmount = Mathf.Floor(Input.acceleration.y) * forwardSpeed;
-			
-		if(Input.acceleration.x != 0)
-			turnAmount = Input.acceleration.x * turnSpeed;
-
-		//cut speed by half when backing up
-		if(forwardAmount < 0)
-			forwardAmount *= .5;
-		
-		transform.Rotate(0,turnAmount,0);
-		rigidbody.AddRelativeForce(0,0,forwardAmount);
-	}
-	else if(singlePlayer){
-	
-		VInput = Input.GetAxis("Vertical");
-		HInput = Input.GetAxis("Horizontal");
-		//keyboard input controls
-		forwardAmount = VInput * forwardSpeed;
-		turnAmount = HInput * turnSpeed;
 	
 		//accelerometer controls
 		//overrides keyboard input
