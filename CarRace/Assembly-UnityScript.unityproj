@@ -50,6 +50,7 @@
      <Compile Include="Assets\MyStuff\DefeatScreen.js" />
      <Compile Include="Assets\MyStuff\DrivingControls.js" />
      <Compile Include="Assets\MyStuff\GameTimer.js" />
+     <Compile Include="Assets\MyStuff\LocalTime.js" />
      <Compile Include="Assets\MyStuff\MenuScript.js" />
      <Compile Include="Assets\MyStuff\PlayerSet.js" />
      <Compile Include="Assets\MyStuff\VictoryScreen.js" />

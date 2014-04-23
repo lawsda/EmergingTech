@@ -51,6 +51,7 @@ function OnGUI(){
 				GUI.Box(Rect(0, 0, 200, 160), "Waiting on Server...");		
 				if(gameStarted){
 					if( GUI.Button(new Rect(50, 30, 100, 20), "Restart")){
+						Network.Disconnect(200);
 						Application.LoadLevel("CarRace_v1.0");
 					}
 				}
@@ -78,6 +79,7 @@ function OnGUI(){
 				GUI.Box(Rect(0, 0, 200, 160), waitingMsg);		
 				if(gameStarted){
 					if( GUI.Button(new Rect(50, 30, 100, 20), "Restart")){
+						Network.Disconnect(200);
 						Application.LoadLevel("CarRace_v1.0");
 					}
 				}
@@ -94,10 +96,11 @@ function OnGUI(){
 						gameStarted = true;
 						finishLine.gameObject.GetComponent(GameTimer).RaceIsOn();
 					}
-				}
-				if(GUI.Button(Rect(50, 60, 100, 20), "Disconnect")){
-					Network.Disconnect(200);
-					Network.Destroy(player1.GetComponent(NetworkView).gameObject);
+				
+					if(GUI.Button(Rect(50, 60, 100, 20), "Disconnect")){
+						Network.Disconnect(200);
+						Network.Destroy(player1.GetComponent(NetworkView).gameObject);
+					}
 				}
 				if(GUI.Button(Rect(50, 90, 100, 20), "Quit")){
 					Application.Quit();
