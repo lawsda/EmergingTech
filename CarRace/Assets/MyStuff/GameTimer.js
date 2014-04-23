@@ -2,37 +2,67 @@
 
 var startTime : float;
 var elapsedTime : float;
-var fastestLap : float;
 
 var theRaceIsOn : boolean = false;
+var p1InRace : boolean = false;
+var p2InRace : boolean = false;
+
+var player1 : GameObject = null;
+var player2 : GameObject = null;
 
 function Start () {
 	startTime = 0; 
 	elapsedTime = 0;  
-	fastestLap = float.MaxValue;
+}
+
+function RaceIsOn(){
+	startTime = Time.time;
+	theRaceIsOn = true;
 }
 
 function OnTriggerEnter(other : Collider){
-	//begin race
-	if(!theRaceIsOn){
-		if(other.transform.tag.Equals("Player")){
-			startTime = Time.time;
-			theRaceIsOn = true;
+	//end race 
+	if(p1InRace){
+		if(other.transform.tag.Equals("Player1")){
+			theRaceIsOn = false;
+			player1.GetComponent(DrivingControls).enabled = false;
+			if(player2 != null){
+				player2.GetComponent(DrivingControls).enabled = false;
+			}
+			if(Network.peerType == NetworkPeerType.Client){
+				this.gameObject.GetComponent(DefeatScreen).enabled = true;
+			}
+			else if(Network.peerType == NetworkPeerType.Server){
+				this.gameObject.GetComponent(VictoryScreen).enabled = true;
+			}
 		}
 	}
-	//end race 
-	else{
-		if(other.transform.tag.Equals("Player")){
-			//end race
+	if(p2InRace){
+		if(other.transform.tag.Equals("Player2")){
 			theRaceIsOn = false;
-			other.gameObject.GetComponent(DrivingControls).enabled = false;
-			//new lap
-			//startTime = Time.time;
-			
-			this.gameObject.GetComponent(VictoryScreen).enabled = true;
-
-			if(elapsedTime <= fastestLap)
-			fastestLap = elapsedTime;
+			player2.GetComponent(DrivingControls).enabled = false;
+			if(player1 != null){
+				player1.GetComponent(DrivingControls).enabled = false;
+			}
+			if(Network.peerType == NetworkPeerType.Server){
+				this.gameObject.GetComponent(DefeatScreen).enabled = true;
+			}
+			else if(Network.peerType == NetworkPeerType.Client){
+				this.gameObject.GetComponent(VictoryScreen).enabled = true;
+			}
+		}
+	}
+	//begin race
+	if(!p1InRace){
+		if(other.transform.tag.Equals("Player1")){
+			p1InRace = true;
+			player1 = other.gameObject;
+		}
+	}
+	if(!p2InRace){
+		if(other.transform.tag.Equals("Player2")){
+			p2InRace = true;
+			player2 = other.gameObject;
 		}
 	}
 }
@@ -54,24 +84,6 @@ function OnGUI(){
 	msec = msec % 1000;
 	var timerText : String = String.Format("{0:00}:{1:00}:{2:000}", min, sec, msec);
     GUI.Label(new Rect(10, 0, 90, 20), timerText);   
-    
-    //Fastest Lap display
-    /*
-    GUI.Box(new Rect(0, 20, 100, 40), "");
-    var lapLabel: String = String.Format("Fastest Lap: ");
-    var lapTime: String;
-    if(fastestLap == float.MaxValue){
-    	lapTime = String.Format("");
-    }
-    else{
-    	min = fastestLap / 60;
-    	sec = fastestLap % 60;
-    	msec = (fastestLap * 1000) % 1000;
-    	lapTime = String.Format("{0:00}:{1:00}:{2:000}", min, sec, msec);
-    }
-    GUI.Label(new Rect(5, 20, 90, 20), lapLabel);
-    GUI.Label(new Rect(10, 40, 90, 20), lapTime);
-    */
 }
 
 

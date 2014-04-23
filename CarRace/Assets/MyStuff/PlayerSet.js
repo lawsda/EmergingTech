@@ -35,7 +35,7 @@ function SpawnPlayer(player : NetworkPlayer){
 		var newPlayerTransform = Network.Instantiate(playerPrefab, startPos, transform.rotation, playerNumber);
 		playerScripts.Add(newPlayerTransform.GetComponent("DrivingControls"));
 		if(newPlayerTransform.gameObject.networkView.isMine){
-			Camera.main.GetComponent(SmoothFollow).target = newPlayerTransform;
+	//		Camera.main.GetComponent(SmoothFollow).target = newPlayerTransform;
 		}
 		
 		var theNetworkView = newPlayerTransform.networkView;

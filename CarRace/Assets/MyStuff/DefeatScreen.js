@@ -6,7 +6,7 @@ function OnGUI(){
 
 	GUI.BeginGroup(Rect(Screen.width/2 - 100, Screen.height/2 - 60, 200, 120));
 		
-		GUI.Box(Rect(0, 0, 200, 160), "Victory!");
+		GUI.Box(Rect(0, 0, 200, 160), "Defeat!");
 
 			if( GUI.Button(new Rect(50, 30, 100, 30), "Restart")){
 				Network.Disconnect(200);
