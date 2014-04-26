@@ -5,6 +5,9 @@ b2Vec2 gravity;
 b2Fixture *bottomFixture;
 b2Fixture *icicleFixture;
 Point lastTouchLocation;
+int icicleTimer = 0;
+
+Sprite* icicleSprite;
 
 b2Body *playerBody;
 b2Fixture *playerFixture;
@@ -12,7 +15,8 @@ b2BodyDef playerBodyDef;
 
 b2PolygonShape playerShape;
 
-b2MouseJoint *mouseJoint;
+vector<b2Fixture*> icicleFixtures;
+vector<Point> icicleSpots;
 
 Scene* HelloWorld::createScene()
 {
@@ -34,7 +38,7 @@ bool HelloWorld::init()
 {
     //////////////////////////////
     // 1. super init first
-    Color4B background = Color4B(30, 195, 235, 255);
+    Color4B background = Color4B(185, 225, 245, 255);
     if ( !LayerColor::initWithColor(background) )
     {
         return false;
@@ -75,6 +79,8 @@ bool HelloWorld::init()
     world = new b2World(gravity);
     world->SetAllowSleeping(doSleep);
     
+    _contactListener = new MyContactListener();
+    world->SetContactListener(_contactListener);
     
     auto touchListener = EventListenerTouchOneByOne::create();
     touchListener->onTouchBegan = CC_CALLBACK_2(HelloWorld::touchBegan, this);
@@ -82,13 +88,18 @@ bool HelloWorld::init()
     touchListener->onTouchEnded = CC_CALLBACK_2(HelloWorld::touchEnded, this);
     getEventDispatcher()->addEventListenerWithFixedPriority(touchListener, 100);
     
+
     ///////////////////////
-    //Create cloud floor and walls
-    for(int i = 0; i <= visibleSize.width + 100; i += 200){
-        auto cloudSprite = Sprite::create("cloud.png");
-        cloudSprite->setPosition(Point(i, 10));
-        this->addChild(cloudSprite, 0);
+    //Create ice floor and walls
+    auto iceSprite = Sprite::create("Ice.png");
+    int iceWidth = iceSprite->getContentSize().width;
+    int iceHeight = iceSprite->getContentSize().height;
+    for(int i = iceWidth/2; i <= visibleSize.width + 100; i += iceWidth){
+        auto iceSprite = Sprite::create("Ice.png");
+        iceSprite->setPosition(Point(i, iceHeight/2));
+        this->addChild(iceSprite, 0);
     }
+    
     b2BodyDef cloudsBodyDef;
     cloudsBodyDef.position.Set(0,0);
     
@@ -97,7 +108,7 @@ bool HelloWorld::init()
     b2FixtureDef cloudBoxDef;
     cloudBoxDef.shape = &cloudBox;
     
-    cloudBox.Set(b2Vec2(0,0), b2Vec2(visibleSize.width, 0));
+    cloudBox.Set(b2Vec2(0,iceHeight/2), b2Vec2(visibleSize.width, iceHeight/2));
     bottomFixture = cloudsBody->CreateFixture(&cloudBoxDef);
     
     cloudBox.Set(b2Vec2(0,0), b2Vec2(0, visibleSize.height));
@@ -106,11 +117,13 @@ bool HelloWorld::init()
     cloudBox.Set(b2Vec2(visibleSize.width,0), b2Vec2(visibleSize.width, visibleSize.height));
     cloudsBody->CreateFixture(&cloudBoxDef);
     
+ 
+ 
     //////////////////////
     //Create player
     
     auto playerSprite = Sprite::create("Climber.png");
-    playerSprite->setPosition(Point(visibleSize.width/2, playerSprite->getContentSize().height/2));
+    playerSprite->setPosition(Point(visibleSize.width/2, (playerSprite->getContentSize().height/2)+iceHeight/2));
     this->addChild(playerSprite, 0);
     
     playerBodyDef.type = b2_dynamicBody;
@@ -131,6 +144,21 @@ bool HelloWorld::init()
 
     lastTouchLocation = Point(playerBody->GetPosition().x, playerBody->GetPosition().y);
     
+    
+    ///////////////////////
+    //Create IcicleArray
+    icicleSprite = Sprite::create("Icicle.png");
+    int icicleWidth = icicleSprite->getContentSize().width;
+    
+    for(int i = icicleWidth/2; i <= visibleSize.width; i+= icicleWidth){
+        Point p = Point(i, visibleSize.height);
+        icicleSpots.push_back(p);
+    }
+    
+    //icicles test
+    srand(time(NULL));
+    int j = rand() % icicleSpots.size();
+    HelloWorld::createIcicle(icicleSpots.at(j));
     
     /////////////////////////
     schedule(schedule_selector(HelloWorld::tick));
@@ -168,7 +196,7 @@ void HelloWorld::movePlayer(Point p){
 
 void HelloWorld::createIcicle(Point p){
     
-    Sprite* icicleSprite = Sprite::create("Icicle.png");
+    icicleSprite = Sprite::create("Icicle.png");
     icicleSprite->setPosition(p);
     
     this->addChild(icicleSprite, 0);
@@ -185,12 +213,14 @@ void HelloWorld::createIcicle(Point p){
     
     b2FixtureDef icicleFixtureDef;
     icicleFixtureDef.shape = &icicle;
-    icicleFixtureDef.density = 1.0f;
-    icicleFixtureDef.friction = 0.6f;
-    icicleFixtureDef.restitution = 0.8f;
+    icicleFixtureDef.density = 50.0f;
+    icicleFixtureDef.friction = 0.0f;
+    icicleFixtureDef.restitution = 0.0f;
     icicleFixture = icicleBody->CreateFixture(&icicleFixtureDef);
     
+    //icicleFixture->s
     
+    icicleFixtures.push_back(icicleFixture);
 }
 
 
@@ -216,16 +246,55 @@ void HelloWorld::tick(float dt){
                 removeChild(myActor);
                 world->DestroyBody(b);
             }
-            
+ 
         }
     }
     
+    
+    //check contacts
+//    vector<b2Fixture*>::iterator posBegin = icicleFixtures.begin();
+//    vector<b2Fixture*>::iterator posEnd = icicleFixtures.end();
+    for(int p = 0; p < _contactListener->_contacts.size(); p++) {
+        MyContact contact = _contactListener->_contacts.at(p);
+
+        auto fixA = contact.fixtureA;
+        auto fixB = contact.fixtureB;
+        if (fixA == bottomFixture && fixB->GetDensity() == 50.0f)  {
+            auto icicle = (Sprite*) fixB->GetBody()->GetUserData();
+            removeChild(icicle);
+            world->DestroyBody(fixB->GetBody());
+        }
+    }
+    
+    if(icicleTimer == 60){
+        srand(time(NULL));
+        int spots[icicleSpots.size()];
+        for(int j = 0; j < icicleSpots.size(); j++){
+            spots[j] = j;
+        }
+        
+        int multi = rand() % 2;
+        int m = 0;
+        while(m <= multi){
+            int i = rand() % icicleSpots.size();
+            if(spots[i] != -1){
+                HelloWorld::createIcicle(icicleSpots[i]);
+                spots[i] = -1;
+                m++;
+            }
+        }
+        
+        icicleTimer = 0;
+    }
+    else icicleTimer++;
+
 }
 
 
 void HelloWorld::menuCloseCallback(Object* pSender)
 {
     Director::getInstance()->end();
+    delete _contactListener;
     
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     exit(0);

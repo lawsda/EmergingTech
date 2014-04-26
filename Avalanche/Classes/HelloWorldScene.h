@@ -4,6 +4,8 @@
 #include "cocos2d.h"
 #include "Box2D/Box2D.h"
 
+#import "MyContactListener.h"
+
 #define PTM_RATIO 32
 #define WORLD_TO_SCREEN(n) ((n) * PTM_RATIO)
 
@@ -12,6 +14,8 @@ using namespace cocos2d;
 class HelloWorld : public cocos2d::LayerColor
 {
 public:
+    
+    MyContactListener *_contactListener;
     
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
     static cocos2d::Scene* createScene();
