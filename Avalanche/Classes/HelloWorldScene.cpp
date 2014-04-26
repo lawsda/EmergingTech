@@ -3,13 +3,14 @@
 b2World* world;
 b2Vec2 gravity;
 b2Fixture *bottomFixture;
-b2Fixture *starFixture;
+b2Fixture *icicleFixture;
+Point lastTouchLocation;
 
 b2Body *playerBody;
 b2Fixture *playerFixture;
 b2BodyDef playerBodyDef;
 
-b2PolygonShape playerBucket;
+b2PolygonShape playerShape;
 
 b2MouseJoint *mouseJoint;
 
@@ -68,7 +69,7 @@ bool HelloWorld::init()
     //Earth G
     gravity.Set(0.0f, - WORLD_TO_SCREEN(9.8));
     //Zero G
-    //    gravity = b2Vec2(0.0f, 0.0f);
+    //gravity = b2Vec2(0.0f, 0.0f);
     bool doSleep = true;
     
     world = new b2World(gravity);
@@ -77,10 +78,12 @@ bool HelloWorld::init()
     
     auto touchListener = EventListenerTouchOneByOne::create();
     touchListener->onTouchBegan = CC_CALLBACK_2(HelloWorld::touchBegan, this);
+    touchListener->onTouchMoved = CC_CALLBACK_2(HelloWorld::touchMoved, this);
+    touchListener->onTouchEnded = CC_CALLBACK_2(HelloWorld::touchEnded, this);
     getEventDispatcher()->addEventListenerWithFixedPriority(touchListener, 100);
     
     ///////////////////////
-    //Create cloud floor
+    //Create cloud floor and walls
     for(int i = 0; i <= visibleSize.width + 100; i += 200){
         auto cloudSprite = Sprite::create("cloud.png");
         cloudSprite->setPosition(Point(i, 10));
@@ -97,13 +100,18 @@ bool HelloWorld::init()
     cloudBox.Set(b2Vec2(0,0), b2Vec2(visibleSize.width, 0));
     bottomFixture = cloudsBody->CreateFixture(&cloudBoxDef);
     
+    cloudBox.Set(b2Vec2(0,0), b2Vec2(0, visibleSize.height));
+    cloudsBody->CreateFixture(&cloudBoxDef);
+    
+    cloudBox.Set(b2Vec2(visibleSize.width,0), b2Vec2(visibleSize.width, visibleSize.height));
+    cloudsBody->CreateFixture(&cloudBoxDef);
+    
     //////////////////////
     //Create player
     
-    auto playerSprite = Sprite::create("catcher.png");
-    playerSprite->setPosition(Point(visibleSize.width/2, WORLD_TO_SCREEN(3)));
+    auto playerSprite = Sprite::create("Climber.png");
+    playerSprite->setPosition(Point(visibleSize.width/2, playerSprite->getContentSize().height/2));
     this->addChild(playerSprite, 0);
-    
     
     playerBodyDef.type = b2_dynamicBody;
     playerBodyDef.position.Set(playerSprite->getPositionX(), playerSprite->getPositionY());
@@ -111,23 +119,17 @@ bool HelloWorld::init()
     
     playerBody = world->CreateBody(&playerBodyDef);
     
+    playerShape.SetAsBox(playerSprite->getContentSize().width/2, playerSprite->getContentSize().height/2);
     
-    b2Vec2 vertices[4];
-    vertices[0].Set(WORLD_TO_SCREEN(-1),WORLD_TO_SCREEN(-3));
-    vertices[1].Set(WORLD_TO_SCREEN(1), WORLD_TO_SCREEN(-3));
-    vertices[2].Set(WORLD_TO_SCREEN(1), 0);
-    vertices[3].Set(WORLD_TO_SCREEN(-1), 0);
-    //b2EdgeShape playerBucket;
-    playerBucket.Set(vertices, 4);
-    b2FixtureDef playerBucketDef;
-    playerBucketDef.shape = &playerBucket;
-    playerBucketDef.density = 100.0f;
-    playerBucketDef.friction = 0.1f;
-    playerBucketDef.restitution = 0.0f;
+    b2FixtureDef playerShapeDef;
+    playerShapeDef.shape = &playerShape;
+    playerShapeDef.density = 100.0f;
+    playerShapeDef.friction = 0.0f;
+    playerShapeDef.restitution = 0.0f;
     
-    //  playerBucket.Set(b2Vec2(-20, 0), b2Vec2(20,0));
-    playerFixture = playerBody->CreateFixture(&playerBucketDef);
-    
+    playerFixture = playerBody->CreateFixture(&playerShapeDef);
+
+    lastTouchLocation = Point(playerBody->GetPosition().x, playerBody->GetPosition().y);
     
     
     /////////////////////////
@@ -138,56 +140,63 @@ bool HelloWorld::init()
 
 bool HelloWorld::touchBegan(Touch* touch, Event* event){
     
-    HelloWorld::movePlayer(touch->getLocation());
+    lastTouchLocation = touch->getLocation();
     
- //   HelloWorld::createStar(touch->getLocation());
+ //   HelloWorld::createIcicle(touch->getLocation());
     
     return true;
 }
 
-void HelloWorld::movePlayer(Point p){
+void HelloWorld::touchMoved(Touch* touch, Event* event){
     
-    int forceDir = playerBody->GetPosition().x - p.x;
-    
-    b2Vec2 force = b2Vec2(WORLD_TO_SCREEN(100000)* -forceDir, 0);
-    
-    b2Vec2 forcePoint = b2Vec2(playerBody->GetPosition().x, WORLD_TO_SCREEN(1.5));
-    
-    playerBody->ApplyLinearImpulse(force, forcePoint);
+    lastTouchLocation = touch->getLocation();
     
 }
 
-void HelloWorld::createStar(Point p){
+void HelloWorld::touchEnded(Touch* touch, Event* event){
+    lastTouchLocation = Point(playerBody->GetPosition().x, playerBody->GetPosition().y);
     
-    auto starSprite = Sprite::create("star.png");
-    starSprite->setPosition(p);
+}
+
+void HelloWorld::movePlayer(Point p){
+
+    int forceDir = playerBody->GetPosition().x - p.x;
     
-    this->addChild(starSprite, 0);
+    playerBody->SetLinearVelocity(b2Vec2(1000 * -forceDir, 0));
     
-    b2BodyDef starBodyDef;
-    starBodyDef.type = b2_dynamicBody;
-    starBodyDef.position = b2Vec2(starSprite->getPositionX(), starSprite->getPositionY());
-    starBodyDef.userData = starSprite;
+}
+
+void HelloWorld::createIcicle(Point p){
     
-    b2Body* starBody = world->CreateBody(&starBodyDef);
+    Sprite* icicleSprite = Sprite::create("Icicle.png");
+    icicleSprite->setPosition(p);
     
-    b2CircleShape circle;
-    circle.m_radius = WORLD_TO_SCREEN(0.6);
+    this->addChild(icicleSprite, 0);
     
-    b2FixtureDef starFixtureDef;
-    starFixtureDef.shape = &circle;
-    starFixtureDef.density = 1.0f;
-    starFixtureDef.friction = 0.6f;
-    starFixtureDef.restitution = 0.9f;
-    starFixture = starBody->CreateFixture(&starFixtureDef);
+    b2BodyDef icicleBodyDef;
+    icicleBodyDef.type = b2_dynamicBody;
+    icicleBodyDef.position = b2Vec2(icicleSprite->getPositionX(), icicleSprite->getPositionY());
+    icicleBodyDef.userData = icicleSprite;
     
-    b2Vec2 force = b2Vec2(0, WORLD_TO_SCREEN(10));
-    starBody->ApplyLinearImpulse(force, starBodyDef.position);
+    b2Body* icicleBody = world->CreateBody(&icicleBodyDef);
+    
+    b2PolygonShape icicle;
+    icicle.SetAsBox(icicleSprite->getContentSize().width/2, icicleSprite->getContentSize().height/2);
+    
+    b2FixtureDef icicleFixtureDef;
+    icicleFixtureDef.shape = &icicle;
+    icicleFixtureDef.density = 1.0f;
+    icicleFixtureDef.friction = 0.6f;
+    icicleFixtureDef.restitution = 0.8f;
+    icicleFixture = icicleBody->CreateFixture(&icicleFixtureDef);
+    
     
 }
 
 
 void HelloWorld::tick(float dt){
+    
+    HelloWorld::movePlayer(lastTouchLocation);
     
     int velocityIterations = 8;
     int positionIterations = 3;

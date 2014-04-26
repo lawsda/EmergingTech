@@ -23,9 +23,11 @@ public:
     void menuCloseCallback(Object* pSender);
     
     void tick(float dt);
-    void createStar(Point p);
+    void createIcicle(Point p);
     void movePlayer(Point p);
     bool touchBegan(Touch* touch, Event* event);
+    void touchMoved(Touch* touch, Event* event);
+    void touchEnded(Touch* touch, Event* event);
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
