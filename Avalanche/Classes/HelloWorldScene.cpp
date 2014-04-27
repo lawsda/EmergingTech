@@ -1,4 +1,5 @@
 #include "HelloWorldScene.h"
+#include "MainMenu.h"
 
 b2World* world;
 b2Vec2 gravity;
@@ -6,6 +7,7 @@ b2Fixture *bottomFixture;
 b2Fixture *icicleFixture;
 Point lastTouchLocation;
 int icicleTimer = 0;
+int gameEndTimer = 0;
 
 Sprite* icicleSprite;
 
@@ -15,8 +17,16 @@ b2BodyDef playerBodyDef;
 
 b2PolygonShape playerShape;
 
+bool died;
+
 vector<b2Fixture*> icicleFixtures;
 vector<Point> icicleSpots;
+
+int screenWidth;
+int screenHeight;
+
+int score;
+LabelTTF* scoreItem;
 
 Scene* HelloWorld::createScene()
 {
@@ -47,7 +57,8 @@ bool HelloWorld::init()
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Point origin = Director::getInstance()->getVisibleOrigin();
     
-    
+    screenWidth = visibleSize.width;
+    screenHeight = visibleSize.height;
     
     /////////////////////////////
     // 2. add a menu item with "X" image, which is clicked to quit the program
@@ -59,21 +70,36 @@ bool HelloWorld::init()
                                            "CloseSelected.png",
                                            CC_CALLBACK_1(HelloWorld::menuCloseCallback, this));
     
-	closeItem->setPosition(Point(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
-                                 origin.y + /*visibleSize.height - */closeItem->getContentSize().height/2));
+	closeItem->setPosition(Point(origin.x + screenWidth - closeItem->getContentSize().width/2 ,
+                                 origin.y + closeItem->getContentSize().height/2));
     
     // create menu, it's an autorelease object
-    auto menu = Menu::create(closeItem, NULL);
-    menu->setPosition(Point::ZERO);
-    this->addChild(menu, 1);
+    auto closeMenu = Menu::create(closeItem, NULL);
+    closeMenu->setPosition(Point::ZERO);
+    this->addChild(closeMenu, 1);
     
     /////////////////////////////
     // 3. add your codes below...
     
-    //Earth G
+    
+    /////////////////////////////
+    // Score
+    score = 0;
+    string scoreText = "Score: "+ to_string(score);
+    scoreItem = LabelTTF::create(scoreText, "Comic Sans", 32);
+    scoreItem->setColor(Color3B(0,0,0));
+    scoreItem->setPosition(Point(screenWidth-96, screenHeight-32));
+    this->addChild(scoreItem, 1);
+    
+    
+    /////////////////////////////
+    //world setup
+    died = false;
+    icicleTimer = 0;
+    gameEndTimer = 0;
+    icicleSpots.clear();
+    
     gravity.Set(0.0f, - WORLD_TO_SCREEN(9.8));
-    //Zero G
-    //gravity = b2Vec2(0.0f, 0.0f);
     bool doSleep = true;
     
     world = new b2World(gravity);
@@ -94,7 +120,7 @@ bool HelloWorld::init()
     auto iceSprite = Sprite::create("Ice.png");
     int iceWidth = iceSprite->getContentSize().width;
     int iceHeight = iceSprite->getContentSize().height;
-    for(int i = iceWidth/2; i <= visibleSize.width + 100; i += iceWidth){
+    for(int i = iceWidth/2; i <= screenWidth + 100; i += iceWidth){
         auto iceSprite = Sprite::create("Ice.png");
         iceSprite->setPosition(Point(i, iceHeight/2));
         this->addChild(iceSprite, 0);
@@ -108,13 +134,13 @@ bool HelloWorld::init()
     b2FixtureDef cloudBoxDef;
     cloudBoxDef.shape = &cloudBox;
     
-    cloudBox.Set(b2Vec2(0,iceHeight/2), b2Vec2(visibleSize.width, iceHeight/2));
+    cloudBox.Set(b2Vec2(0,iceHeight/2), b2Vec2(screenWidth, iceHeight/2));
     bottomFixture = cloudsBody->CreateFixture(&cloudBoxDef);
     
-    cloudBox.Set(b2Vec2(0,0), b2Vec2(0, visibleSize.height));
+    cloudBox.Set(b2Vec2(0,0), b2Vec2(0, screenHeight));
     cloudsBody->CreateFixture(&cloudBoxDef);
     
-    cloudBox.Set(b2Vec2(visibleSize.width,0), b2Vec2(visibleSize.width, visibleSize.height));
+    cloudBox.Set(b2Vec2(screenWidth,0), b2Vec2(screenWidth, screenHeight));
     cloudsBody->CreateFixture(&cloudBoxDef);
     
  
@@ -123,7 +149,7 @@ bool HelloWorld::init()
     //Create player
     
     auto playerSprite = Sprite::create("Climber.png");
-    playerSprite->setPosition(Point(visibleSize.width/2, (playerSprite->getContentSize().height/2)+iceHeight/2));
+    playerSprite->setPosition(Point(screenWidth/2, (playerSprite->getContentSize().height/2)+iceHeight/2));
     this->addChild(playerSprite, 0);
     
     playerBodyDef.type = b2_dynamicBody;
@@ -150,15 +176,10 @@ bool HelloWorld::init()
     icicleSprite = Sprite::create("Icicle.png");
     int icicleWidth = icicleSprite->getContentSize().width;
     
-    for(int i = icicleWidth/2; i <= visibleSize.width; i+= icicleWidth){
-        Point p = Point(i, visibleSize.height);
+    for(int i = icicleWidth/2; i <= screenWidth; i+= icicleWidth){
+        Point p = Point(i, screenHeight);
         icicleSpots.push_back(p);
     }
-    
-    //icicles test
-    srand(time(NULL));
-    int j = rand() % icicleSpots.size();
-    HelloWorld::createIcicle(icicleSpots.at(j));
     
     /////////////////////////
     schedule(schedule_selector(HelloWorld::tick));
@@ -223,10 +244,25 @@ void HelloWorld::createIcicle(Point p){
     icicleFixtures.push_back(icicleFixture);
 }
 
+void HelloWorld::gameOver(){
+    scoreItem = LabelTTF::create("Game Over", "Comic Sans", 64);
+    scoreItem->setColor(Color3B(255,0,0));
+    scoreItem->setPosition(Point(screenWidth/2, screenHeight/2));
+    this->addChild(scoreItem, 1);
+}
+
 
 void HelloWorld::tick(float dt){
     
-    HelloWorld::movePlayer(lastTouchLocation);
+    if(gameEndTimer == 120){
+        Director::getInstance()->popScene();
+    }
+    
+    if(died)
+        gameEndTimer++;
+    
+    if(!died)
+        HelloWorld::movePlayer(lastTouchLocation);
     
     int velocityIterations = 8;
     int positionIterations = 3;
@@ -252,28 +288,41 @@ void HelloWorld::tick(float dt){
     
     
     //check contacts
-//    vector<b2Fixture*>::iterator posBegin = icicleFixtures.begin();
-//    vector<b2Fixture*>::iterator posEnd = icicleFixtures.end();
     for(int p = 0; p < _contactListener->_contacts.size(); p++) {
         MyContact contact = _contactListener->_contacts.at(p);
 
         auto fixA = contact.fixtureA;
         auto fixB = contact.fixtureB;
+        //icicle hits floor
         if (fixA == bottomFixture && fixB->GetDensity() == 50.0f)  {
             auto icicle = (Sprite*) fixB->GetBody()->GetUserData();
             removeChild(icicle);
             world->DestroyBody(fixB->GetBody());
         }
+        //player and icicle collide
+        if(fixA->GetDensity() == 100.0f && fixB->GetDensity() == 50.0f){
+            auto icicle = (Sprite*) fixB->GetBody()->GetUserData();
+            removeChild(icicle);
+            world->DestroyBody(fixB->GetBody());
+            auto player = (Sprite*) fixA->GetBody()->GetUserData();
+            removeChild(player);
+            world->DestroyBody(fixA->GetBody());
+            died = true;
+            gameOver();
+            
+        }
     }
     
-    if(icicleTimer == 60){
+    if(icicleTimer >= 55 && !died){
+        HelloWorld::updateScore();
         srand(time(NULL));
         int spots[icicleSpots.size()];
         for(int j = 0; j < icicleSpots.size(); j++){
             spots[j] = j;
         }
         
-        int multi = rand() % 2;
+        //spawn up to 6 icicles each tick
+        int multi = rand() % 6;
         int m = 0;
         while(m <= multi){
             int i = rand() % icicleSpots.size();
@@ -288,6 +337,11 @@ void HelloWorld::tick(float dt){
     }
     else icicleTimer++;
 
+}
+
+void HelloWorld::updateScore(){
+    score += 15;
+    scoreItem->setString("Score: "+to_string(score));
 }
 
 

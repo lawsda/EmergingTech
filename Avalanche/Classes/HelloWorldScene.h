@@ -16,6 +16,7 @@ class HelloWorld : public cocos2d::LayerColor
 public:
     
     MyContactListener *_contactListener;
+    int HIGH_SCORE;
     
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
     static cocos2d::Scene* createScene();
@@ -32,6 +33,9 @@ public:
     bool touchBegan(Touch* touch, Event* event);
     void touchMoved(Touch* touch, Event* event);
     void touchEnded(Touch* touch, Event* event);
+    void gameOver();
+    void updateScore();
+    
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
