@@ -71,6 +71,9 @@ function Update () {
 	}
 }
 
+
+//gui buttons for testing time changes
+// /*
 function OnGUI()
 {
 	if(GUI.Button(Rect(Screen.width - 20, Screen.height - 20, 20, 20), "+")){
@@ -89,3 +92,5 @@ function OnGUI()
 			hour = now.Hour;
 	}
 }
+// */
+

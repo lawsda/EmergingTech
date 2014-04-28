@@ -65,6 +65,11 @@ bool MainMenu::init()
     /////////////////////////////
     //Main Menu
 
+    auto title = LabelTTF::create("Avalanche", "Times New Roman", 96);
+    title->setColor(Color3B(100,0,255));
+    title->setPosition(Point(visibleSize.width/2, visibleSize.height*3/4));
+    this->addChild(title, 1);
+    
     auto menuText_1 = MenuItemFont::create("Start Game", CC_CALLBACK_1(MainMenu::menuPlayCallback, this));
     menuText_1->setFontSizeObj(visibleSize.width/15);
     menuText_1->setColor(Color3B(0,0,0));
@@ -73,6 +78,10 @@ bool MainMenu::init()
     auto menu = Menu::create(menuText_1, NULL);
     menu->setPosition(Point::ZERO);
     this->addChild(menu, 1);
+    
+    auto icicleLayer= Sprite::create("IcicleLayer.png");
+    icicleLayer->setPosition(Point(visibleSize.width/2, (visibleSize.height*3/4)-66));
+    this->addChild(icicleLayer, 1);    
     
     return true;
 }

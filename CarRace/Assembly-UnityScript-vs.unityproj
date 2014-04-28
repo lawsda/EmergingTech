@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\CubeMove.js" />
+     <Compile Include="Assets\MyStuff\AccelDisplay.js" />
      <Compile Include="Assets\MyStuff\DefeatScreen.js" />
      <Compile Include="Assets\MyStuff\DrivingControls.js" />
      <Compile Include="Assets\MyStuff\GameTimer.js" />

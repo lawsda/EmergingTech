@@ -7,6 +7,7 @@ var playerScripts : Array = new Array();
 function OnServerInitialized(){
 	SpawnPlayer(Network.player);
 	Camera.main.gameObject.GetComponent(MenuScript).player1 = GameObject.FindWithTag("Player1");
+	GameObject.FindWithTag("Player1").gameObject.GetComponent(DrivingControls).enabled = false;
 }
 
 function OnPlayerConnected(player : NetworkPlayer){
@@ -16,6 +17,7 @@ var tempPlayerString = player.ToString();
 	if(playerNumber < 2){
 		SpawnPlayer(player);
 		Camera.main.gameObject.GetComponent(MenuScript).player2 = GameObject.FindWithTag("Player2");
+		GameObject.FindWithTag("Player2").gameObject.GetComponent(DrivingControls).enabled = false;
 	}
 }
 
